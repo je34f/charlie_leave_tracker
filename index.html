@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>10C4I Charlie Company Leave/Off Tracker</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h1>Leave/Off Tracker</h1>
+
+<!-- Login Section -->
+<div id="userSection" class="card">
+    <h2>Enter your FULL NAME in CAPS</h2>
+    <input id="searchInput" placeholder="e.g FABIUS TAN CHOON KEONG">
+    <button onclick="searchUser()">Login</button>
+
+    <div id="userInfo"></div>
+    <div id="myRequests"></div>
+</div>
+
+<!-- Request Form (Employee) -->
+<div id="formSection" class="card hidden">
+    <h2>Submit Request</h2>
+
+    <label>Type</label>
+    <select id="type">
+        <option>Leave</option>
+        <option>Off</option>
+    </select>
+
+    <label>Date Range</label>
+    <div class="dates">
+        <input type="date" id="start">
+        <input type="date" id="end">
+    </div>
+
+    <label>Reason for Request</label>
+    <textarea id="reason"></textarea>
+
+    <button onclick="submitRequest()">Submit</button>
+</div>
+
+<!-- Admin Panel -->
+<div id="adminSection" class="card hidden">
+    <h2>Admin Approval Panel</h2>
+
+    <!-- Scrollable User List -->
+    <div id="adminUserList" class="scroll-list"></div>
+
+    <!-- Section to update selected user leave -->
+    <div id="adminUserEdit"></div>
+
+    <!-- Requests -->
+    <div id="requests"></div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

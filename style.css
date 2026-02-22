@@ -1,0 +1,49 @@
+/* GENERAL */
+body {
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+h1 { text-align: center; margin-bottom: 20px; }
+.card { background: #f9f9f9; padding: 20px; border-radius: 12px; margin-bottom: 20px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);}
+.hidden { display: none; }
+
+input, select, textarea, button { margin-top: 6px; margin-bottom: 12px; width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ccc; box-sizing: border-box;}
+textarea { resize: vertical;}
+.dates input { width: 48%; }
+
+/* REQUEST CARDS */
+.request { position: relative; padding: 15px; margin-top: 12px; border-radius: 12px; background: #fff; border: 1px solid #ddd; }
+.request-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.request-body { font-size: 14px; }
+.status { padding: 4px 12px; border-radius: 999px; font-weight: bold; font-size: 13px; }
+.status.pending { background: #fff3cd; color: #856404; }
+.status.approved { background: #d4edda; color: #155724; }
+.status.rejected { background: #f8d7da; color: #721c24; }
+
+/* SPREAD BUTTONS */
+.request-buttons-spread { display: flex; justify-content: space-between; margin-top: 12px; }
+.request-buttons-spread button { flex: 1; padding: 10px; font-weight: bold; border-radius: 8px; cursor: pointer; margin: 0 5px; transition: all 0.2s ease; }
+.request-buttons-spread button:first-child { background-color: #28a745; color: white;}
+.request-buttons-spread button:first-child:hover { background-color: #218838; transform: scale(1.05);}
+.request-buttons-spread button:nth-child(2) { background-color: #dc3545; color: white;}
+.request-buttons-spread button:nth-child(2):hover { background-color: #c82333; transform: scale(1.05);}
+.request-buttons-spread button:last-child { background-color: #6c757d; color: white; }
+.request-buttons-spread button:last-child:hover { background-color: #5a6268; transform: scale(1.05); }
+
+/* ADMIN USER PANEL */
+.scroll-list { max-height: 150px; overflow-y: scroll; border: 1px solid #ccc; padding: 5px; border-radius: 8px; margin-bottom: 12px;}
+.scroll-list div { padding: 8px; cursor: pointer; border-bottom: 1px solid #eee; }
+.scroll-list div:hover { background-color: #f1f1f1; }
+
+.admin-user-edit { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.admin-user-edit input { width: 60px; padding: 4px 6px; border-radius: 6px; border: 1px solid #ccc; }
+.admin-user-edit button { padding: 5px 10px; border-radius: 6px; background-color: #007bff; color: white; border: none; cursor: pointer; }
+.admin-user-edit button:hover { background-color: #0069d9; }
+
+/* MOBILE */
+@media (max-width: 600px) {
+    .dates input { width: 100%; margin-bottom: 8px; }
+    .request-buttons-spread button { flex: 1; margin: 4px 0; }
+}

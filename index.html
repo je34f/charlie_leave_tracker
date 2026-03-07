@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://rsms.me/">
     <link rel="stylesheet" href="https://rsms.me/inter/inter.css"></head>
     <link rel="stylesheet" href="calendar.css">
+    <link rel="stylesheet" href="pin.css">
+    <script src="pin.js"></script>
 <body>
 
 <div class="header">
@@ -20,8 +22,7 @@
     <input id="searchInput" placeholder="e.g FABIUS TAN CHOON KEONG">
     <div id="recentLogins"></div>
     <div id="searchDropdown" class="search-dropdown hidden"></div>
-    <button class="login-btn" onclick="searchUser()">Login</button>
-
+    <button class="login-btn" onclick="initiateLogin(document.getElementById('searchInput').value)">Login</button>
     <div id="userInfo"></div>
 </div>
 

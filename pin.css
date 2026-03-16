@@ -1,0 +1,138 @@
+/* ── PIN MODAL ──────────────────────────────────────────────── */
+.pin-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.pin-box {
+    background: #fff;
+    border-radius: 16px;
+    padding: 28px 28px 24px;
+    width: 90%;
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+}
+
+.pin-box h3 {
+    margin: 0 0 4px;
+    font-size: 18px;
+    font-weight: 700;
+    color: #111;
+}
+
+.pin-box .pin-subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-bottom: 20px;
+}
+
+/* PIN dot display */
+.pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.pin-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 2px solid #ccc;
+    background: transparent;
+    transition: all 0.15s;
+}
+
+.pin-dot.filled {
+    background: #222;
+    border-color: #222;
+}
+
+/* Number pad */
+.pin-pad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.pin-key {
+    background: #f5f5f5;
+    border: 1px solid #e0e0e0;
+    border-radius: 10px;
+    font-size: 20px;
+    font-weight: 600;
+    padding: 14px 0;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #222;
+    width: 100%;
+}
+
+.pin-key:hover {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+    opacity: 1;
+}
+
+.pin-key:active {
+    transform: scale(0.94);
+}
+
+.pin-key.pin-del {
+    background: #fee2e2;
+    color: #dc3545;
+    border-color: #fca5a5;
+    font-size: 16px;
+}
+
+.pin-key.pin-del:hover {
+    background: #dc3545;
+    color: #fff;
+    border-color: #dc3545;
+}
+
+.pin-key.pin-confirm {
+    background: #222;
+    color: #fff;
+    border-color: #222;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.pin-key.pin-confirm:hover {
+    background: #444;
+}
+
+.pin-error {
+    color: #dc3545;
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 18px;
+    margin-bottom: 8px;
+}
+
+.pin-cancel-link {
+    font-size: 13px;
+    color: #aaa;
+    cursor: pointer;
+    text-decoration: underline;
+    background: none;
+    border: none;
+    padding: 0;
+    width: auto;
+    margin: 0;
+    font-weight: 400;
+}
+
+.pin-cancel-link:hover {
+    color: #555;
+    opacity: 1;
+}

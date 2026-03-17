@@ -259,7 +259,7 @@ function launchConfetti() {
         document.body.appendChild(el);
 
         // Force browser to register the element at top:-16px before animating
-        setTimeout(() => {
+        setTimeout(async () => {
             // Now force a reflow so the initial position is committed
             el.getBoundingClientRect();
 
@@ -314,6 +314,10 @@ function searchUser() {
 
     saveRecentLogin(selectedUser.name);
     renderRecentLogins();
+
+    // Show bell after login
+    document.getElementById("notifBell").style.display = "flex";
+    loadNotifications(); // load on login
 
     isAdmin = admins.some(a => a.toLowerCase() === selectedUser.name.toLowerCase());
 
@@ -402,6 +406,103 @@ function renderSearchDropdown(query) {
         dropdown.appendChild(item);
     });
     dropdown.classList.remove("hidden");
+}
+
+
+// ================= NOTIFICATIONS =================
+let notifPanelOpen = false;
+
+async function loadNotifications() {
+    if (!selectedUser) return;
+    try {
+        const notifs = await sb.getNotifications(selectedUser.name);
+        renderNotifPanel(notifs);
+        updateNotifBadge(notifs);
+    } catch (err) {
+        console.error("Failed to load notifications:", err);
+    }
+}
+
+function renderNotifPanel(notifs) {
+    const list = document.getElementById("notifList");
+    if (!list) return;
+
+    if (!notifs || notifs.length === 0) {
+        list.innerHTML = `<div class="notif-empty">No notifications</div>`;
+        return;
+    }
+
+    list.innerHTML = "";
+    notifs.forEach(n => {
+        const item = document.createElement("div");
+        item.className = "notif-item" + (!n.read ? " unread" : "");
+
+        const timeAgo = formatTimeAgo(n.created_at);
+
+        item.innerHTML = `
+            <div class="notif-dot ${n.type}"></div>
+            <div class="notif-text">
+                ${n.message}
+                <div class="notif-time">${timeAgo}</div>
+            </div>
+            <button class="notif-dismiss" onclick="dismissNotif(${n.id})">×</button>
+        `;
+
+        // Mark as read when panel is open
+        if (!n.read) sb.markNotificationRead(n.id);
+
+        list.appendChild(item);
+    });
+}
+
+function updateNotifBadge(notifs) {
+    const badge = document.getElementById("notifBadge");
+    if (!badge) return;
+    const unread = (notifs || []).filter(n => !n.read).length;
+    badge.textContent = unread > 9 ? "9+" : String(unread);
+    badge.classList.toggle("hidden", unread === 0);
+}
+
+function toggleNotifPanel() {
+    const panel = document.getElementById("notifPanel");
+    notifPanelOpen = !notifPanelOpen;
+    panel.classList.toggle("hidden", !notifPanelOpen);
+    if (notifPanelOpen) loadNotifications();
+}
+
+async function markAllRead() {
+    if (!selectedUser) return;
+    await sb.markAllNotificationsRead(selectedUser.name);
+    document.getElementById("notifBadge").classList.add("hidden");
+    await loadNotifications();
+}
+
+async function dismissNotif(id) {
+    await sb.deleteNotification(id);
+    await loadNotifications();
+}
+
+function formatTimeAgo(timestamp) {
+    const diff = Date.now() - timestamp;
+    const mins = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+    if (mins < 1) return "Just now";
+    if (mins < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+}
+
+async function createNotification(recipient, message, type) {
+    const notif = {
+        id: Date.now() + Math.floor(Math.random() * 1000),
+        recipient,
+        message,
+        type,
+        read: false,
+        created_at: Date.now()
+    };
+    await sb.addNotification(notif);
 }
 
 // ================= PIN SYSTEM =================
@@ -558,7 +659,7 @@ function submitRequest() {
 
     btn.disabled = true; text.textContent = "Submitting..."; spinner.classList.remove("hidden");
 
-    setTimeout(() => {
+    setTimeout(async () => {
         try {
             const safeTeam = String(selectedUser.team || "Unknown").trim();
 
@@ -625,6 +726,14 @@ function submitRequest() {
                 }
                 
                 requests.push(req);
+                // Notify all admins of new submission
+                for (const adminName of admins) {
+                    await createNotification(
+                        adminName,
+                        `📋 ${selectedUser.name.split(" ")[0]} submitted a ${selectedType} request (${start} → ${end})`,
+                        "submitted"
+                    );
+                }
                 showToast("Request submitted");
                 launchConfetti();
 
@@ -747,6 +856,9 @@ function goHome() {
     document.getElementById("userSection").classList.remove("hidden"); // shows login
     document.getElementById("userBanner").classList.add("hidden"); 
     document.getElementById("employeeCalendarSection").classList.add("hidden");    // hides banner
+    document.getElementById("notifBell").style.display = "none";
+    document.getElementById("notifPanel").classList.add("hidden");
+    notifPanelOpen = false;
     renderRecentLogins();
 
     const homeBtn = document.getElementById("floatingHome");
@@ -952,13 +1064,19 @@ function renderRequests() {
 }
 
 // ================= APPROVE REQUEST =================
-function approveRequest(requestId) {
+async function approveRequest(requestId) {
     requests = JSON.parse(localStorage.getItem("requests")) || [];
     const idx = requests.findIndex(r => r.id === requestId);
     if (idx === -1) { showToast("Request not found", "#dc3545"); return; }
     const r = requests[idx];
     if (r.status === "Approved" && r.deducted) { showToast("Already approved", "#007bff"); return; }
     r.status = "Approved";
+    // Notify the requester
+    await createNotification(
+        r.user,
+        `✅ Your ${r.type} request (${r.start} → ${r.end}) has been approved`,
+        "approved"
+    );
     if (r.type === "Leave" && !r.deducted) {
         const user = users.find(u => normName(u.name) === normName(r.user));
         if (user) {
@@ -1376,7 +1494,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 initiateLogin(document.getElementById("searchInput").value);
             }
         });
-        document.addEventListener("click", (e) => {
+        document.addEventListener("click", async (e) => {
             if (!e.target.closest("#userSection")) document.getElementById("searchDropdown")?.classList.add("hidden");
         });
     }
@@ -1394,6 +1512,13 @@ document.addEventListener("DOMContentLoaded", () => {
         renderEmployeeRequests();
     });
 
+    document.addEventListener("click", (e) => {
+        if (notifPanelOpen && !e.target.closest("#notifPanel") && !e.target.closest("#notifBell")) {
+            document.getElementById("notifPanel").classList.add("hidden");
+            notifPanelOpen = false;
+        }
+    });
+
     const newUserNameEl = document.getElementById("newUserName");
     if (newUserNameEl) {
         newUserNameEl.addEventListener("input", (e) => {
@@ -1404,7 +1529,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // Document-level delegation for admin buttons
-    document.addEventListener("click", (e) => {
+    document.addEventListener("click", async (e) => {
         const btn = e.target.closest("#requests button[data-action][data-id]");
         if (!btn) return;
         const action = btn.dataset.action;
@@ -1435,8 +1560,18 @@ document.addEventListener("DOMContentLoaded", () => {
             }
             const next = latest.map(r => r.id === id ? { ...r, status: "Rejected", deducted: false } : r);
             updateRequestsStorage(next);
+            // Notify the requester
+            const rejReq = latest.find(r => r.id === id);
+            if (rejReq) {
+                await createNotification(
+                    rejReq.user,
+                    `❌ Your ${rejReq.type} request (${rejReq.start} → ${rejReq.end}) has been rejected`,
+                    "rejected"
+                );
+            }
             return;
         }
+
         if (action === "archive") { adminArchiveOpen=true; updateRequestsStorage(latest.map(r => r.id===id ? {...r,archived:true,archivedAt:Date.now()} : r)); return; }
         if (action === "restore") { updateRequestsStorage(latest.map(r => r.id===id ? {...r,archived:false} : r)); return; }
         if (action === "purge") {
@@ -1470,7 +1605,12 @@ document.addEventListener("DOMContentLoaded", () => {
             if(newStatus==="Approved"){ approveRequest(id); return; }
             updateRequestsStorage(latest.map(r => r.id===id ? {...r,status:"Rejected",deducted:false} : r));
             return;
+
         }
     });
+    setInterval(() => {
+        if (selectedUser) loadNotifications();
+    }, 30000);
+
     initApp();
 });

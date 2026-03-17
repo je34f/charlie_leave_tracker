@@ -108,7 +108,20 @@ textarea { resize: vertical;}
     border: none;
     cursor: pointer;
     transition: 0.2s;
-    width: 40%;
+    width: calc(50% - 24px);
+    box-sizing: border-box;
+}
+
+#requestChoice {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: stretch;
+}
+
+#requestChoice h2 {
+    width: 100%;
+    text-align: center;
 }
 
 .leaveBtn{

@@ -26,6 +26,26 @@
     <div id="userInfo"></div>
 </div>
 
+<!-- Add User Form -->
+<div id="addUserForm" class="card hidden" style="margin-bottom:12px;padding:16px;">
+    <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;">Add New Personnel</h3>
+    <input id="newUserName" placeholder="Full name in CAPS e.g. TAN AH KOW" style="text-transform:uppercase;">
+    <select id="newUserTeam">
+        <option value="">Select Team</option>
+        <option value="HQ">HQ</option>
+        <option value="1">Team 1</option>
+        <option value="2">Team 2</option>
+        <option value="3">Team 3</option>
+    </select>
+    <input id="newUserLeave" type="number" placeholder="Starting leave balance" min="0" max="30">
+    <label style="display:flex;align-items:center;gap:8px;margin-bottom:12px;width:auto;font-weight:600;font-size:14px;">
+        <input type="checkbox" id="newUserIsAdmin" style="width:auto;margin:0;">
+        Grant admin access
+    </label>
+    <button onclick="addNewUser()" class="login-btn" style="background:#222;">Add Personnel</button>
+</div>
+
+
 <!-- User Profile Banner (shown after login) -->
 <div id="userBanner" class="user-banner hidden">
     <div class="banner-avatar" id="bannerAvatar"></div>

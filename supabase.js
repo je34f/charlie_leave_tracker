@@ -79,6 +79,34 @@ const sb = {
         return this.delete("requests", `id=eq.${id}`);
     },
 
+    
+    // ── NOTIFICATIONS ───────────────────────────────────────────
+    async getNotifications(recipient) {
+        return this.get("notifications", `recipient=eq.${encodeURIComponent(recipient)}&order=created_at.desc&limit=50`);
+    },
+
+    async addNotification(notif) {
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/notifications`, {
+            method: "POST",
+            headers: { ...this.headers, "Prefer": "return=representation" },
+            body: JSON.stringify(notif)
+        });
+        return res.json();
+    },
+
+    async markNotificationRead(id) {
+        return this.patch("notifications", `id=eq.${id}`, { read: true });
+    },
+
+    async markAllNotificationsRead(recipient) {
+        return this.patch("notifications", `recipient=eq.${encodeURIComponent(recipient)}`, { read: true });
+    },
+
+    async deleteNotification(id) {
+        return this.delete("notifications", `id=eq.${id}`);
+    },
+
+    
     // ── USERS ──────────────────────────────────────────────────
     async getUsers() {
         return this.get("users", "order=name.asc");

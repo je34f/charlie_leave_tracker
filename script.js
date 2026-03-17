@@ -2,7 +2,8 @@
 const DEFAULT_USERS = [
     { name: "WONG JIA HUI CHERYL", leave: 14, team: "HQ"},
     { name: "FABIUS TAN CHOON KEONG", leave: 14, team: "HQ"},
-    { name: "FOO YI MING TED", leave: 8, team: "HQ"},
+    { name: "LIM WEI CHER", leave: 14, team: "HQ"},
+    { name: "LEE MING XUN", leave: 14, team: "HQ"},
     { name: "SAKTHI PRAKASH S/O THANABAL", leave: 15, team: "HQ"},
     { name: "JOVAN TIU ZHE KANG", leave: 0, team: "HQ"},
     { name: "RYAN TEOH AN", leave: 0, team: "HQ"},
@@ -260,8 +261,8 @@ function launchConfetti() {
 
 // ================= ADMINS =================
 const admins = [
-    "WONG JIA HUI CHERYL","FABIUS TAN CHOON KEONG",
-    "FOO YI MING TED","SAKTHI PRAKASH S/O THANABAL"
+    "WONG JIA HUI CHERYL","FABIUS TAN CHOON KEONG","LEE MING XUN",
+    "LIM WEI CHER","SAKTHI PRAKASH S/O THANABAL"
 ];
 
 // ================= LOGIN =================
@@ -304,6 +305,11 @@ function searchUser() {
     if (isAdmin) {
         renderRequests();
         renderAdminUserList();
+        const addUserForm = document.getElementById("addUserForm");
+        if (addUserForm) {
+            const isFabius = normName(selectedUser.name) === normName("FABIUS TAN CHOON KEONG");
+            addUserForm.classList.toggle("hidden", !isFabius);
+        }
         if (typeof initCalendar === "function") initCalendar();
     } else {
         renderEmployeeRequests();
@@ -947,19 +953,102 @@ function approveRequest(requestId) {
 function renderAdminUserList() {
     const list = document.getElementById("UserList"); list.innerHTML = "";
     users.forEach(u => {
+        const isAdminUser = admins.includes(u.name);
         const row = document.createElement("div"); row.className = "userRow";
         row.innerHTML = `
-            <span class="userName">${u.name}</span>
+            <span class="userName">
+                ${u.name}
+                ${isAdminUser ? '<span style="background:#6366f1;color:#fff;font-size:10px;padding:2px 6px;border-radius:10px;margin-left:6px;font-weight:700;">ADMIN</span>' : ''}
+            </span>
             <div class="leaveEditor">
                 <button onclick="changeLeave('${u.name}', -1)">▼</button>
                 <span class="leaveCount">${u.leave}</span>
                 <button onclick="changeLeave('${u.name}', 1)">▲</button>
                 <button onclick="adminResetPin('${u.name}')" style="background:#f59e0b;font-size:11px;padding:4px 8px;">Reset PIN</button>
+                <button onclick="removeUser('${u.name}')" style="background:#dc3545;font-size:11px;padding:4px 8px;">Remove</button>
             </div>
         `;
         list.appendChild(row);
     });
 }
+
+// ================= ADD USER =================
+async function addNewUser() {
+    const nameEl = document.getElementById("newUserName");
+    const teamEl = document.getElementById("newUserTeam");
+    const leaveEl = document.getElementById("newUserLeave");
+    const isAdminEl = document.getElementById("newUserIsAdmin");
+
+    const name = nameEl.value.trim().toUpperCase();
+    const team = teamEl.value;
+    const leave = parseInt(leaveEl.value);
+    const makeAdmin = isAdminEl.checked;
+
+    // Validation
+    if (!name) { showToast("Please enter a name", "#dc3545"); return; }
+    if (!team) { showToast("Please select a team", "#dc3545"); return; }
+    if (isNaN(leave) || leave < 0) { showToast("Please enter a valid leave balance", "#dc3545"); return; }
+    if (users.find(u => normName(u.name) === normName(name))) {
+        showToast("User already exists", "#dc3545"); return;
+    }
+
+    const newUser = { name, team, leave };
+
+    // Add to local users array
+    users.push(newUser);
+    localStorage.setItem("users", JSON.stringify(users));
+
+    // Sync to Supabase
+    try {
+        await sb.post("users", newUser);
+        showToast(`${name.split(" ")[0]} added successfully`, "#28a745");
+    } catch (err) {
+        console.error("Failed to sync new user to Supabase:", err);
+        showToast("Added locally but failed to sync to database", "#f59e0b");
+    }
+
+    // If admin, add to admins array
+    if (makeAdmin && !admins.includes(name)) {
+        admins.push(name);
+    }
+
+    // Clear form
+    nameEl.value = "";
+    teamEl.value = "";
+    leaveEl.value = "";
+    isAdminEl.checked = false;
+
+    renderAdminUserList();
+}
+
+
+async function removeUser(name) {
+    showConfirm(`Remove ${name.split(" ")[0]} from the system? This cannot be undone.`, async () => {
+        // Remove from local array
+        users = users.filter(u => u.name !== name);
+        localStorage.setItem("users", JSON.stringify(users));
+
+        // Remove from admins if applicable
+        const adminIdx = admins.indexOf(name);
+        if (adminIdx !== -1) admins.splice(adminIdx, 1);
+
+        // Remove PIN
+        resetPin(name);
+
+        // Sync deletion to Supabase
+        try {
+            await sb.delete("users", `name=eq.${encodeURIComponent(name)}`);
+            showToast(`${name.split(" ")[0]} removed`, "#6c757d");
+        } catch (err) {
+            console.error("Failed to remove user from Supabase:", err);
+            showToast("Removed locally but failed to sync", "#f59e0b");
+        }
+
+        renderAdminUserList();
+    });
+}
+
+
 
 function changeLeave(name, amount) {
     const user = users.find(u => u.name === name); if (!user) return;
@@ -1280,6 +1369,15 @@ document.addEventListener("DOMContentLoaded", () => {
         if(s) s.value=""; if(t) t.value="";
         renderEmployeeRequests();
     });
+
+    const newUserNameEl = document.getElementById("newUserName");
+    if (newUserNameEl) {
+        newUserNameEl.addEventListener("input", (e) => {
+            const pos = e.target.selectionStart;
+            e.target.value = e.target.value.toUpperCase();
+            e.target.setSelectionRange(pos, pos);
+        });
+    }
 
     // Document-level delegation for admin buttons
     document.addEventListener("click", (e) => {

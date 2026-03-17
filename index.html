@@ -29,7 +29,7 @@
 <!-- Add User Form -->
 <div id="addUserForm" class="card hidden" style="margin-bottom:12px;padding:16px;">
     <h3 style="margin:0 0 12px;font-size:16px;font-weight:700;">Add New Personnel</h3>
-    <input id="newUserName" placeholder="Full name in CAPS e.g. TAN AH KOW" style="text-transform:uppercase;">
+    <input id="newUserName" placeholder="Full name in CAPS" style="text-transform:uppercase;">
     <select id="newUserTeam">
         <option value="">Select Team</option>
         <option value="HQ">HQ</option>
@@ -193,6 +193,12 @@
 <script src="supabase.js"></script>
 <script src="pin.js"></script>
 <script src="script.js"></script>
+<button id="notifBell" onclick="toggleNotifPanel()" style="display:none;">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+    </svg>
+    <span id="notifBadge" class="notif-badge hidden">0</span>
+</button>
 <button id="floatingHome" onclick="goHome()">
     <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
         <path d="M12 3l9 8h-3v9h-12v-9h-3z"/>
@@ -215,6 +221,21 @@
         <path d="M12 3l9 8h-3v9h-12v-9h-3z"/>
     </svg>
 </button>
+
+<button id="notifBell" onclick="toggleNotifPanel()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="white">
+        <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
+    </svg>
+    <span id="notifBadge" class="notif-badge hidden">0</span>
+</button>
+
+<div id="notifPanel" class="notif-panel hidden">
+    <div class="notif-panel-header">
+        <span>Notifications</span>
+        <button onclick="markAllRead()" class="notif-mark-all">Mark all read</button>
+    </div>
+    <div id="notifList" class="notif-list"></div>
+</div>
 
 </body>
 </html>

@@ -229,35 +229,58 @@ function setRequestStatusById(id, status) {
 // ================= CONFETTI =================
 function launchConfetti() {
     const colors = ["#f44336","#e91e63","#9c27b0","#3f51b5","#2196f3","#00bcd4","#4caf50","#ffeb3b","#ff9800"];
-    function spawnBatch(count, delayOffset) {
-        for (let i = 0; i < count; i++) {
-            const el = document.createElement("div");
-            const size = Math.random() * 10 + 5;
-            const color = colors[Math.floor(Math.random() * colors.length)];
-            const startX = Math.random() * window.innerWidth;
-            const drift = (Math.random() - 0.5) * 300;
-            const duration = Math.random() * 1000 + 1500;
-            const delay = delayOffset + Math.random() * 400;
-            const rotation = Math.random() * 720 - 360;
-            el.style.cssText = [
-                "position:fixed","top:-12px","left:" + startX + "px",
-                "width:" + size + "px","height:" + size + "px","background:" + color,
-                "border-radius:" + (Math.random() > 0.5 ? "50%" : "2px"),
-                "z-index:99999","pointer-events:none","opacity:1",
-                "transition:transform " + duration + "ms ease-in, top " + duration + "ms ease-in, opacity 300ms ease " + (duration + delay - 300) + "ms",
-                "transition-delay:" + delay + "ms"
-            ].join(";");
-            document.body.appendChild(el);
-            requestAnimationFrame(() => requestAnimationFrame(() => {
-                el.style.top = (window.innerHeight + 20) + "px";
-                el.style.transform = "translateX(" + drift + "px) rotate(" + rotation + "deg)";
-                el.style.opacity = "0";
-            }));
-            setTimeout(() => el.remove(), duration + delay + 500);
-        }
+
+    function spawnParticle(delayOffset) {
+        const el = document.createElement("div");
+        const size = Math.random() * 12 + 6;
+        const color = colors[Math.floor(Math.random() * colors.length)];
+        const startX = Math.random() * window.innerWidth;
+        const drift = (Math.random() - 0.5) * 400;
+        const duration = Math.random() * 1500 + 2000;
+        const rotation = Math.random() * 720 - 360;
+        const isCircle = Math.random() > 0.5;
+
+        // Fixed initial styles — no transition yet
+        Object.assign(el.style, {
+            position: "fixed",
+            top: "-16px",
+            left: startX + "px",
+            width: size + "px",
+            height: (isCircle ? size : size * 1.6) + "px",
+            background: color,
+            borderRadius: isCircle ? "50%" : "3px",
+            zIndex: "99999",
+            pointerEvents: "none",
+            opacity: "1",
+            transition: "none",
+            transform: "translateX(0px) rotate(0deg)"
+        });
+
+        document.body.appendChild(el);
+
+        // Force browser to register the element at top:-16px before animating
+        setTimeout(() => {
+            // Now force a reflow so the initial position is committed
+            el.getBoundingClientRect();
+
+            // Apply transition and final state
+            el.style.transition = `top ${duration}ms cubic-bezier(0.25, 0.46, 0.45, 0.94), transform ${duration}ms ease-in, opacity 500ms ease ${duration - 500}ms`;
+            el.style.top = (window.innerHeight + 30) + "px";
+            el.style.transform = `translateX(${drift}px) rotate(${rotation}deg)`;
+            el.style.opacity = "0";
+
+            setTimeout(() => el.remove(), duration + 600);
+        }, delayOffset);
     }
-    spawnBatch(80, 0); spawnBatch(80, 400); spawnBatch(80, 800); spawnBatch(80, 1200);
+
+    // 4 waves of 100 particles each
+    for (let i = 0; i < 400; i++) {
+        const wave = Math.floor(i / 100);
+        const randomDelay = Math.random() * 400;
+        spawnParticle(wave * 300 + randomDelay);
+    }
 }
+
 
 // ================= ADMINS =================
 const admins = [
@@ -1156,6 +1179,7 @@ function renderWeekView(wrap) {
     const grid=document.createElement("div"); grid.className="cal-week-grid";
     days.forEach((d,i)=>{
         const dateStr=d.toISOString().slice(0,10); const reqs=requestsOnDate(dateStr); const isToday=dateStr===today;
+        const isPH = PUBLIC_HOLIDAYS.has(dateStr);
         const col = document.createElement("div");
         col.className = "cal-week-col" + (isToday ? " cal-today" : "") + (isPH ? " cal-ph" : "");        
         const dayHdr=document.createElement("div"); dayHdr.className="cal-week-day-hdr";

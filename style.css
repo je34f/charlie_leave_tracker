@@ -1154,6 +1154,15 @@ button:hover {
     opacity: 1;
 }
 
+@media (max-width: 600px) {
+    .cal-tooltip {
+        max-height: 60vh;
+        overflow-y: auto;
+        font-size: 12px;
+        padding: 12px;
+    }
+}
+
 /* ── MONTH GRID ─────────────────────────────────────────────── */
 .cal-grid {
     display: grid;

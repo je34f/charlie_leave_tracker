@@ -1205,7 +1205,11 @@ window.addEventListener("storage", (e) => {
     if (e.key === "requests") { requests = JSON.parse(e.newValue) || []; if (isAdmin) renderRequests(); }
 });
 
-function parseDate(d) { return d ? new Date(d + "T00:00:00") : null; }
+function parseDate(d) {
+    if (!d) return null;
+    const [y, m, day] = d.split("-").map(Number);
+    return new Date(y, m - 1, day);  // local time
+}
 function includesText(haystack, needle) { return (haystack||"").toLowerCase().includes((needle||"").toLowerCase().trim()); }
 
 // ================= CUSTOM CONFIRM MODAL =================
@@ -1238,8 +1242,19 @@ function calRequests() {
     return (JSON.parse(localStorage.getItem("requests"))||[]).filter(r => !r.archived && (r.status==="Approved"||r.status==="Pending"));
 }
 function dateRange(start, end) {
-    const days=[]; const cur=new Date(start+"T00:00:00"); const last=new Date(end+"T00:00:00");
-    while(cur<=last){ days.push(cur.toISOString().slice(0,10)); cur.setDate(cur.getDate()+1); }
+    const days = [];
+    // Parse date parts directly to avoid timezone shifts
+    const [sy, sm, sd] = start.split("-").map(Number);
+    const [ey, em, ed] = end.split("-").map(Number);
+    const cur = new Date(sy, sm - 1, sd);      // local time, no UTC conversion
+    const last = new Date(ey, em - 1, ed);     // local time, no UTC conversion
+    while (cur <= last) {
+        const y = cur.getFullYear();
+        const m = String(cur.getMonth() + 1).padStart(2, "0");
+        const d = String(cur.getDate()).padStart(2, "0");
+        days.push(`${y}-${m}-${d}`);
+        cur.setDate(cur.getDate() + 1);
+    }
     return days;
 }
 function requestsOnDate(dateStr) { return calRequests().filter(r => dateRange(r.start,r.end).includes(dateStr)); }
@@ -1324,7 +1339,10 @@ function showCalTooltip(e, dateStr, reqs) {
     hideCalTooltip(); if(reqs.length===0) return;
     const tip=document.createElement("div"); tip.id="calTooltip"; tip.className="cal-tooltip";
     const onLeave=new Set(reqs.map(r=>r.user)).size; const avail=totalUsers()-onLeave;
-    const dateLabel=new Date(dateStr+"T00:00:00").toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
+    const [y, m, d] = dateStr.split("-").map(Number);
+    const dateLabel = new Date(y, m - 1, d).toLocaleDateString("en-SG", {
+        weekday: "short", day: "numeric", month: "short", year: "numeric"
+    });    
     let html=`<div class="cal-tip-date">${dateLabel}</div><div class="cal-tip-manpower">👥 ${avail} / ${totalUsers()} available</div><div class="cal-tip-divider"></div>`;
     reqs.forEach(r=>{ const col=TEAM_COLORS[r.team]||"#999"; const sc=r.status==="Approved"?"tip-approved":"tip-pending"; html+=`<div class="cal-tip-row"><span class="cal-tip-dot" style="background:${col}"></span><span class="cal-tip-name">${r.user}</span><span class="cal-tip-tag ${sc}">${r.type}</span></div>`; });
     tip.innerHTML=html; document.body.appendChild(tip);

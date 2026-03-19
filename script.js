@@ -179,7 +179,8 @@ async function initApp() {
         console.log("3. Got requests:", dbRequests);
 
         if (dbRequests) {
-            requests = dbRequests.map(r => ({ ...r, archivedAt: r.archived_at, halfDay: r.half_day || null }));
+            requests = dbRequests.map(r => ({ ...r, archivedAt: r.archived_at, halfDay: r.half_day || null, start: r.start ? r.start.slice(0, 10) : r.start,
+            end: r.end ? r.end.slice(0, 10) : r.end   }));
             localStorage.setItem("requests", JSON.stringify(requests));
         }
 
@@ -879,7 +880,7 @@ async function refreshData() {
 
         const dbRequests = await sb.getRequests();
         if (dbRequests) {
-            requests = dbRequests.map(r => ({ ...r, archivedAt: r.archived_at }));
+            requests = dbRequests.map(r => ({ ...r, archivedAt: r.archived_at, halfDay: r.half_day || null }));
             localStorage.setItem("requests", JSON.stringify(requests));
         }
 
@@ -894,6 +895,7 @@ async function refreshData() {
             updateUserBanner();
         }
 
+        await loadNotifications();
         showToast("Data refreshed", "#28a745");
 
     } catch (err) {
@@ -1326,11 +1328,38 @@ function showCalTooltip(e, dateStr, reqs) {
     let html=`<div class="cal-tip-date">${dateLabel}</div><div class="cal-tip-manpower">👥 ${avail} / ${totalUsers()} available</div><div class="cal-tip-divider"></div>`;
     reqs.forEach(r=>{ const col=TEAM_COLORS[r.team]||"#999"; const sc=r.status==="Approved"?"tip-approved":"tip-pending"; html+=`<div class="cal-tip-row"><span class="cal-tip-dot" style="background:${col}"></span><span class="cal-tip-name">${r.user}</span><span class="cal-tip-tag ${sc}">${r.type}</span></div>`; });
     tip.innerHTML=html; document.body.appendChild(tip);
-    const rect=e.target.getBoundingClientRect();
-    let left=rect.right+8, top=rect.top;
-    if(left+260>window.innerWidth) left=rect.left-268;
-    if(top+tip.offsetHeight>window.innerHeight) top=window.innerHeight-tip.offsetHeight-8;
-    tip.style.left=left+"px"; tip.style.top=Math.max(8,top)+"px";
+    const rect = e.target.getBoundingClientRect();
+    let left = rect.right + 8, top = rect.top;
+    if (left + 260 > window.innerWidth) left = rect.left - 268;
+    if (top + tip.offsetHeight > window.innerHeight) top = window.innerHeight - tip.offsetHeight - 8;
+    tip.style.left = left + "px";
+    tip.style.top = Math.max(8, top) + "px";
+
+    document.body.appendChild(tip);
+    
+    if (isMobile) {
+        tip.addEventListener("click", hideCalTooltip);
+    }
+    const isMobile = window.innerWidth <= 600;
+
+    if (isMobile) {
+        // On mobile — center it horizontally, anchor near top of screen
+        tip.style.position = "fixed";
+        tip.style.left = "50%";
+        tip.style.transform = "translateX(-50%)";
+        tip.style.top = "80px";
+        tip.style.width = "90vw";
+        tip.style.maxWidth = "90vw";
+        tip.style.zIndex = "99999";
+    } else {
+        const rect = e.target.getBoundingClientRect();
+        let left = rect.right + 8, top = rect.top;
+        if (left + 260 > window.innerWidth) left = rect.left - 268;
+        if (left < 8) left = 8;
+        if (top + tip.offsetHeight > window.innerHeight) top = window.innerHeight - tip.offsetHeight - 8;
+        tip.style.left = left + "px";
+        tip.style.top = Math.max(8, top) + "px";
+    }
 }
 function hideCalTooltip() { document.getElementById("calTooltip")?.remove(); }
 function setCalView(v) {

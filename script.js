@@ -1096,13 +1096,13 @@ function renderWeekView(wrap) {
             bar.className = "cal-gcal-bar";
             bar.textContent = "📅 " + ev.title;
             bar.title = ev.description || ev.title;
-            cell.appendChild(bar); // or col.appendChild(bar) in week views
+            col.appendChild(bar); // or col.appendChild(bar) in week views
         });
         if (extraGc > 0) {
             const more = document.createElement("div");
             more.className = "cal-bar-more";
             more.textContent = "+" + extraGc + " more";
-            cell.appendChild(more); // or col.appendChild(more) in week views
+            col.appendChild(more); // or col.appendChild(more) in week views
         }
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.textContent=PH_NAMES[dateStr]; col.appendChild(phLabel); }
         if(reqs.length===0){ const empty=document.createElement("div"); empty.className="cal-week-empty"; empty.textContent="—"; col.appendChild(empty); }
@@ -1264,13 +1264,13 @@ function renderEmpWeekView(wrap) {
             bar.className = "cal-gcal-bar";
             bar.textContent = "📅 " + ev.title;
             bar.title = ev.description || ev.title;
-            cell.appendChild(bar); // or col.appendChild(bar) in week views
+            col.appendChild(bar); // or col.appendChild(bar) in week views
         });
         if (extraGc > 0) {
             const more = document.createElement("div");
             more.className = "cal-bar-more";
             more.textContent = "+" + extraGc + " more";
-            cell.appendChild(more); // or col.appendChild(more) in week views
+            col.appendChild(more); // or col.appendChild(more) in week views
         }
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.style.cssText="text-align:center;padding:2px 4px;"; phLabel.textContent=PH_NAMES[dateStr]; col.appendChild(phLabel); }
         if(reqs.length===0){ const empty=document.createElement("div"); empty.className="cal-week-empty"; empty.textContent="—"; col.appendChild(empty); }

@@ -1044,13 +1044,21 @@ function renderMonthView(wrap) {
         shown.forEach(r=>{ const bar=document.createElement("div"); bar.className="cal-bar"+(r.status==="Pending"?" cal-bar-pending":""); bar.style.background=TEAM_COLORS[r.team]||"#999"; bar.textContent=r.user.split(" ")[0]; cell.appendChild(bar); });
         if(extra>0){ const more=document.createElement("div"); more.className="cal-bar-more"; more.textContent="+"+extra+" more"; cell.appendChild(more); }
         const gcEvents = getGCalEventsOnDate(dateStr);
-        gcEvents.forEach(ev => {
+        const shownGc = gcEvents.slice(0, 2);
+        const extraGc = gcEvents.length - shownGc.length;
+        shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
             bar.textContent = "📅 " + ev.title;
             bar.title = ev.description || ev.title;
-            cell.appendChild(bar);
+            cell.appendChild(bar); // or col.appendChild(bar) in week views
         });
+        if (extraGc > 0) {
+            const more = document.createElement("div");
+            more.className = "cal-bar-more";
+            more.textContent = "+" + extraGc + " more";
+            cell.appendChild(more); // or col.appendChild(more) in week views
+        }
         cell.addEventListener("mouseenter",(e)=>showCalTooltip(e,dateStr,reqs));
         cell.addEventListener("mouseleave",hideCalTooltip);
         grid.appendChild(cell);
@@ -1081,13 +1089,21 @@ function renderWeekView(wrap) {
         dayHdr.innerHTML=`<span class="cal-week-dayname">${dayNames[i]}</span><span class="cal-week-datenum">${d.getDate()}</span>`;
         col.appendChild(dayHdr);
         const gcEvents = getGCalEventsOnDate(dateStr);
-        gcEvents.forEach(ev => {
+        const shownGc = gcEvents.slice(0, 2);
+        const extraGc = gcEvents.length - shownGc.length;
+        shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
             bar.textContent = "📅 " + ev.title;
             bar.title = ev.description || ev.title;
-            col.appendChild(bar);
+            cell.appendChild(bar); // or col.appendChild(bar) in week views
         });
+        if (extraGc > 0) {
+            const more = document.createElement("div");
+            more.className = "cal-bar-more";
+            more.textContent = "+" + extraGc + " more";
+            cell.appendChild(more); // or col.appendChild(more) in week views
+        }
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.textContent=PH_NAMES[dateStr]; col.appendChild(phLabel); }
         if(reqs.length===0){ const empty=document.createElement("div"); empty.className="cal-week-empty"; empty.textContent="—"; col.appendChild(empty); }
         else {
@@ -1191,13 +1207,21 @@ function renderEmpMonthView(wrap) {
         cell.className="cal-cell"+(isToday?" cal-today":"")+(isPH?" cal-ph":"");
         const num=document.createElement("span"); num.className="cal-date-num"; num.textContent=d; cell.appendChild(num);
         const gcEvents = getGCalEventsOnDate(dateStr);
-        gcEvents.forEach(ev => {
+        const shownGc = gcEvents.slice(0, 2);
+        const extraGc = gcEvents.length - shownGc.length;
+        shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
             bar.textContent = "📅 " + ev.title;
             bar.title = ev.description || ev.title;
-            cell.appendChild(bar);
+            cell.appendChild(bar); // or col.appendChild(bar) in week views
         });
+        if (extraGc > 0) {
+            const more = document.createElement("div");
+            more.className = "cal-bar-more";
+            more.textContent = "+" + extraGc + " more";
+            cell.appendChild(more); // or col.appendChild(more) in week views
+        }
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.textContent=PH_NAMES[dateStr]; cell.appendChild(phLabel); }
         if(reqs.length>0){ const onLeave=new Set(reqs.map(r=>r.user)).size; const avail=totalUsers()-onLeave; const badge=document.createElement("span"); badge.className="cal-manpower"; badge.textContent=avail+"/"+totalUsers(); cell.appendChild(badge); }
         const shown=reqs.slice(0,3); const extra=reqs.length-shown.length;
@@ -1232,13 +1256,21 @@ function renderEmpWeekView(wrap) {
         dayHdr.innerHTML=`<span class="cal-week-dayname">${dayNames[i]}</span><span class="cal-week-datenum">${d.getDate()}</span>`;
         col.appendChild(dayHdr);
         const gcEvents = getGCalEventsOnDate(dateStr);
-        gcEvents.forEach(ev => {
+        const shownGc = gcEvents.slice(0, 2);
+        const extraGc = gcEvents.length - shownGc.length;
+        shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
             bar.textContent = "📅 " + ev.title;
             bar.title = ev.description || ev.title;
-            col.appendChild(bar);
+            cell.appendChild(bar); // or col.appendChild(bar) in week views
         });
+        if (extraGc > 0) {
+            const more = document.createElement("div");
+            more.className = "cal-bar-more";
+            more.textContent = "+" + extraGc + " more";
+            cell.appendChild(more); // or col.appendChild(more) in week views
+        }
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.style.cssText="text-align:center;padding:2px 4px;"; phLabel.textContent=PH_NAMES[dateStr]; col.appendChild(phLabel); }
         if(reqs.length===0){ const empty=document.createElement("div"); empty.className="cal-week-empty"; empty.textContent="—"; col.appendChild(empty); }
         else {

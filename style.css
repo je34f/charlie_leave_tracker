@@ -1349,6 +1349,22 @@ button:hover {
     padding: 20px 0;
 }
 
+/* ── GOOGLE CALENDAR BARS ────────────────────────────────── */
+.cal-gcal-bar {
+    display: block;
+    font-size: 9px;
+    font-weight: 600;
+    color: #fff;
+    background: #1a73e8;
+    border-radius: 4px;
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
 /* ── TOOLTIP ────────────────────────────────────────────────── */
 .cal-tooltip {
     position: fixed;

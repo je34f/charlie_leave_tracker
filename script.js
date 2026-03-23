@@ -1059,7 +1059,7 @@ function renderMonthView(wrap) {
             more.textContent = "+" + extraGc + " more";
             cell.appendChild(more); // or col.appendChild(more) in week views
         }
-        cell.addEventListener("mouseenter",(e)=>showCalTooltip(e,dateStr,reqs));
+        cell.addEventListener("mouseenter",(e)=>(e,dateStr,reqs));
         cell.addEventListener("mouseleave",hideCalTooltip);
         grid.appendChild(cell);
     }
@@ -1121,14 +1121,15 @@ function renderWeekView(wrap) {
 }
 
 function showCalTooltip(e, dateStr, reqs) {
-    hideCalTooltip(); if(reqs.length===0) return;
+    hideCalTooltip();
+    const gcEvents = getGCalEventsOnDate(dateStr);
+    if(reqs.length===0 && gcEvents.length===0) return;
     const tip=document.createElement("div"); tip.id="calTooltip"; tip.className="cal-tooltip";
     const onLeave=new Set(reqs.map(r=>r.user)).size; const avail=totalUsers()-onLeave;
     const [y,m,d]=dateStr.split("-").map(Number);
     const dateLabel=new Date(y,m-1,d).toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
     let html=`<div class="cal-tip-date">${dateLabel}</div><div class="cal-tip-manpower">👥 ${avail} / ${totalUsers()} available</div><div class="cal-tip-divider"></div>`;
     reqs.forEach(r=>{ const col=TEAM_COLORS[r.team]||"#999"; const sc=r.status==="Approved"?"tip-approved":"tip-pending"; html+=`<div class="cal-tip-row"><span class="cal-tip-dot" style="background:${col}"></span><span class="cal-tip-name">${sanitize(r.user)}</span><span class="cal-tip-tag ${sc}">${sanitize(r.type)}</span></div>`; });
-    const gcEvents = getGCalEventsOnDate(dateStr);
     if (gcEvents.length > 0) {
         html += `<div class="cal-tip-divider"></div>`;
         gcEvents.forEach(ev => {

@@ -1,7 +1,6 @@
 // ================= SUPABASE CONFIG =================
-// IMPORTANT: Rotate your anon key in Supabase dashboard after moving to auth
 const SUPABASE_URL = "https://pmtlxyaoyvajebgioczg.supabase.co";
-const SUPABASE_KEY = "sb_publishable_idsO_hLQIPfH0JJBj0BTAA_EgR-wmrQ";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBtdGx4eWFveXZhamViZ2lvY3pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMwNTE0ODIsImV4cCI6MjA4ODYyNzQ4Mn0.WmQH1ucEgirlyzyB8m5z8YAv01ZLpX1SXR5ausg-ovg";
 
 const sb = {
     headers: {

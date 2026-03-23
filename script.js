@@ -544,8 +544,8 @@ async function initiateLogin(name) {
 
 // ================= ADMIN RESET PIN =================
 function adminResetPin(name) {
-    showConfirm("Reset PIN for " + name.split(" ")[0] + "?", () => {
-        resetPin(name);
+    showConfirm("Reset PIN for " + name.split(" ")[0] + "?", async () => {
+        await resetPin(name);
         showToast("PIN reset — they will be prompted to create a new one.", "#007bff");
     });
 }

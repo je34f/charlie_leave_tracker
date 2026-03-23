@@ -164,7 +164,7 @@ async function initApp() {
             }));
             localStorage.setItem("requests", JSON.stringify(requests));
         }
-        // PIN fetching removed — PINs are now verified server-side only
+        await loadGCalEvents();
     } catch(err) {
         console.error("Supabase error:", err);
         showToast("Could not reach database, using local data", "#f59e0b");
@@ -738,6 +738,7 @@ async function refreshData() {
         if (isAdmin) { renderRequests(); renderAdminUserList(); if (typeof initCalendar === "function") initCalendar(); }
         else if (selectedUser) { renderEmployeeRequests(); renderEmployeeCalendar(); updateUserBanner(); }
         await loadNotifications();
+        await loadGCalEvents();
         showToast("Data refreshed", "#28a745");
     } catch (err) { console.error("Refresh error:", err); showToast("Refresh failed", "#dc3545"); }
     finally { btn.classList.remove("spinning"); }
@@ -1042,6 +1043,14 @@ function renderMonthView(wrap) {
         const shown=reqs.slice(0,3); const extra=reqs.length-shown.length;
         shown.forEach(r=>{ const bar=document.createElement("div"); bar.className="cal-bar"+(r.status==="Pending"?" cal-bar-pending":""); bar.style.background=TEAM_COLORS[r.team]||"#999"; bar.textContent=r.user.split(" ")[0]; cell.appendChild(bar); });
         if(extra>0){ const more=document.createElement("div"); more.className="cal-bar-more"; more.textContent="+"+extra+" more"; cell.appendChild(more); }
+        const gcEvents = getGCalEventsOnDate(dateStr);
+        gcEvents.forEach(ev => {
+            const bar = document.createElement("div");
+            bar.className = "cal-gcal-bar";
+            bar.textContent = "📅 " + ev.title;
+            bar.title = ev.description || ev.title;
+            cell.appendChild(bar);
+        });
         cell.addEventListener("mouseenter",(e)=>showCalTooltip(e,dateStr,reqs));
         cell.addEventListener("mouseleave",hideCalTooltip);
         grid.appendChild(cell);
@@ -1071,6 +1080,14 @@ function renderWeekView(wrap) {
         const dayHdr=document.createElement("div"); dayHdr.className="cal-week-day-hdr";
         dayHdr.innerHTML=`<span class="cal-week-dayname">${dayNames[i]}</span><span class="cal-week-datenum">${d.getDate()}</span>`;
         col.appendChild(dayHdr);
+        const gcEvents = getGCalEventsOnDate(dateStr);
+        gcEvents.forEach(ev => {
+            const bar = document.createElement("div");
+            bar.className = "cal-gcal-bar";
+            bar.textContent = "📅 " + ev.title;
+            bar.title = ev.description || ev.title;
+            col.appendChild(bar);
+        });
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.textContent=PH_NAMES[dateStr]; col.appendChild(phLabel); }
         if(reqs.length===0){ const empty=document.createElement("div"); empty.className="cal-week-empty"; empty.textContent="—"; col.appendChild(empty); }
         else {
@@ -1095,6 +1112,13 @@ function showCalTooltip(e, dateStr, reqs) {
     const dateLabel=new Date(y,m-1,d).toLocaleDateString("en-SG",{weekday:"short",day:"numeric",month:"short",year:"numeric"});
     let html=`<div class="cal-tip-date">${dateLabel}</div><div class="cal-tip-manpower">👥 ${avail} / ${totalUsers()} available</div><div class="cal-tip-divider"></div>`;
     reqs.forEach(r=>{ const col=TEAM_COLORS[r.team]||"#999"; const sc=r.status==="Approved"?"tip-approved":"tip-pending"; html+=`<div class="cal-tip-row"><span class="cal-tip-dot" style="background:${col}"></span><span class="cal-tip-name">${sanitize(r.user)}</span><span class="cal-tip-tag ${sc}">${sanitize(r.type)}</span></div>`; });
+    const gcEvents = getGCalEventsOnDate(dateStr);
+    if (gcEvents.length > 0) {
+        html += `<div class="cal-tip-divider"></div>`;
+        gcEvents.forEach(ev => {
+            html += `<div class="cal-tip-row"><span style="font-size:14px;margin-right:6px">📅</span><span class="cal-tip-name">${sanitize(ev.title)}</span></div>`;
+        });
+    }
     tip.innerHTML=html; document.body.appendChild(tip);
 
     const isMobile = window.innerWidth <= 600;
@@ -1166,6 +1190,14 @@ function renderEmpMonthView(wrap) {
         const cell=document.createElement("div");
         cell.className="cal-cell"+(isToday?" cal-today":"")+(isPH?" cal-ph":"");
         const num=document.createElement("span"); num.className="cal-date-num"; num.textContent=d; cell.appendChild(num);
+        const gcEvents = getGCalEventsOnDate(dateStr);
+        gcEvents.forEach(ev => {
+            const bar = document.createElement("div");
+            bar.className = "cal-gcal-bar";
+            bar.textContent = "📅 " + ev.title;
+            bar.title = ev.description || ev.title;
+            cell.appendChild(bar);
+        });
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.textContent=PH_NAMES[dateStr]; cell.appendChild(phLabel); }
         if(reqs.length>0){ const onLeave=new Set(reqs.map(r=>r.user)).size; const avail=totalUsers()-onLeave; const badge=document.createElement("span"); badge.className="cal-manpower"; badge.textContent=avail+"/"+totalUsers(); cell.appendChild(badge); }
         const shown=reqs.slice(0,3); const extra=reqs.length-shown.length;
@@ -1199,6 +1231,14 @@ function renderEmpWeekView(wrap) {
         const dayHdr=document.createElement("div"); dayHdr.className="cal-week-day-hdr";
         dayHdr.innerHTML=`<span class="cal-week-dayname">${dayNames[i]}</span><span class="cal-week-datenum">${d.getDate()}</span>`;
         col.appendChild(dayHdr);
+        const gcEvents = getGCalEventsOnDate(dateStr);
+        gcEvents.forEach(ev => {
+            const bar = document.createElement("div");
+            bar.className = "cal-gcal-bar";
+            bar.textContent = "📅 " + ev.title;
+            bar.title = ev.description || ev.title;
+            col.appendChild(bar);
+        });
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.style.cssText="text-align:center;padding:2px 4px;"; phLabel.textContent=PH_NAMES[dateStr]; col.appendChild(phLabel); }
         if(reqs.length===0){ const empty=document.createElement("div"); empty.className="cal-week-empty"; empty.textContent="—"; col.appendChild(empty); }
         else {

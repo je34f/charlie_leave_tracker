@@ -990,6 +990,7 @@ function showConfirm(message, onYes) {
 const TEAM_COLORS = { "HQ": "#6366f1", "1": "#10b981", "2": "#f59e0b", "3": "#ef4444" };
 let calView = "month";
 let calDate = new Date(); calDate.setDate(1);
+let expandedDate = null;
 
 function initCalendar() { renderCalendar(); }
 function renderCalendar() {
@@ -1033,19 +1034,26 @@ function renderMonthView(wrap) {
     const today=new Date().toISOString().slice(0,10);
     for(let d=1;d<=daysInMonth;d++){
         const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-        const reqs=requestsOnDate(dateStr); const isToday=dateStr===today;
+        const reqs=requestsOnDate(dateStr); 
+        const isToday=dateStr===today;
         const isPH=PUBLIC_HOLIDAYS.has(dateStr);
+        const isExpanded = expandedDate === dateStr;
         const cell=document.createElement("div");
-        cell.className="cal-cell"+(isToday?" cal-today":"")+(isPH?" cal-ph":"");
+        cell.className =
+            "cal-cell" +
+            (isToday ? " cal-today" : "") +
+            (isPH ? " cal-ph" : "") +
+            (isExpanded ? " cal-cell-expanded" : "");
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.textContent=PH_NAMES[dateStr]; cell.appendChild(phLabel); }
         const num=document.createElement("span"); num.className="cal-date-num"; num.textContent=d; cell.appendChild(num);
         if(reqs.length>0){ const onLeave=new Set(reqs.map(r=>r.user)).size; const avail=totalUsers()-onLeave; const badge=document.createElement("span"); badge.className="cal-manpower"; badge.textContent=avail+"/"+totalUsers(); cell.appendChild(badge); }
-        const shown=reqs.slice(0,3); const extra=reqs.length-shown.length;
+        const shown = isExpanded ? reqs : reqs.slice(0, 3);
+        const extra = isExpanded ? 0 : reqs.length - shown.length;
         shown.forEach(r=>{ const bar=document.createElement("div"); bar.className="cal-bar"+(r.status==="Pending"?" cal-bar-pending":""); bar.style.background=TEAM_COLORS[r.team]||"#999"; bar.textContent=r.user.split(" ")[0]; cell.appendChild(bar); });
         if(extra>0){ const more=document.createElement("div"); more.className="cal-bar-more"; more.textContent="+"+extra+" more"; cell.appendChild(more); }
         const gcEvents = getGCalEventsOnDate(dateStr);
-        const shownGc = gcEvents.slice(0, 2);
-        const extraGc = gcEvents.length - shownGc.length;
+        const shownGc = isExpanded ? gcEvents : gcEvents.slice(0, 2);
+        const extraGc = isExpanded ? 0 : gcEvents.length - shownGc.length;
         shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
@@ -1059,8 +1067,19 @@ function renderMonthView(wrap) {
             more.textContent = "+" + extraGc + " more";
             cell.appendChild(more); // or col.appendChild(more) in week views
         }
-        cell.addEventListener("mouseenter",(e)=>(e,dateStr,reqs));
+        cell.addEventListener("mouseenter",(e)=>showCalTooltip(e,dateStr,reqs));
         cell.addEventListener("mouseleave",hideCalTooltip);
+        cell.addEventListener("click", (e) => {
+            e.stopPropagation();
+        
+            if (expandedDate === dateStr) {
+                expandedDate = null; // collapse if same
+            } else {
+                expandedDate = dateStr; // expand new
+            }
+        
+            renderCalendar();
+        });
         grid.appendChild(cell);
     }
     wrap.appendChild(grid);
@@ -1089,8 +1108,8 @@ function renderWeekView(wrap) {
         dayHdr.innerHTML=`<span class="cal-week-dayname">${dayNames[i]}</span><span class="cal-week-datenum">${d.getDate()}</span>`;
         col.appendChild(dayHdr);
         const gcEvents = getGCalEventsOnDate(dateStr);
-        const shownGc = gcEvents.slice(0, 2);
-        const extraGc = gcEvents.length - shownGc.length;
+        const shownGc = isExpanded ? gcEvents : gcEvents.slice(0, 2);
+        const extraGc = isExpanded ? 0 : gcEvents.length - shownGc.length;
         shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
@@ -1113,6 +1132,7 @@ function renderWeekView(wrap) {
         }
         col.addEventListener("mouseenter",(e)=>showCalTooltip(e,dateStr,reqs));
         col.addEventListener("mouseleave",hideCalTooltip);
+        col.addEventListener("click",(e)=>{ e.stopPropagation(); showCalTooltip(e,dateStr,reqs); });
         grid.appendChild(col);
     });
     wrap.appendChild(grid);
@@ -1203,13 +1223,19 @@ function renderEmpMonthView(wrap) {
     const today=new Date().toISOString().slice(0,10);
     for(let d=1;d<=daysInMonth;d++){
         const dateStr=`${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-        const reqs=requestsOnDate(dateStr); const isToday=dateStr===today; const isPH=PUBLIC_HOLIDAYS.has(dateStr);
+        const reqs=requestsOnDate(dateStr); 
+        const isToday=dateStr===today; 
+        const isPH=PUBLIC_HOLIDAYS.has(dateStr);
+
+        const isExpanded = expandedDate === dateStr;
+
+
         const cell=document.createElement("div");
         cell.className="cal-cell"+(isToday?" cal-today":"")+(isPH?" cal-ph":"");
         const num=document.createElement("span"); num.className="cal-date-num"; num.textContent=d; cell.appendChild(num);
         const gcEvents = getGCalEventsOnDate(dateStr);
-        const shownGc = gcEvents.slice(0, 2);
-        const extraGc = gcEvents.length - shownGc.length;
+        const shownGc = isExpanded ? gcEvents : gcEvents.slice(0, 2);
+        const extraGc = isExpanded ? 0 : gcEvents.length - shownGc.length;
         shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
@@ -1225,11 +1251,13 @@ function renderEmpMonthView(wrap) {
         }
         if(isPH){ const phLabel=document.createElement("div"); phLabel.className="cal-ph-label"; phLabel.textContent=PH_NAMES[dateStr]; cell.appendChild(phLabel); }
         if(reqs.length>0){ const onLeave=new Set(reqs.map(r=>r.user)).size; const avail=totalUsers()-onLeave; const badge=document.createElement("span"); badge.className="cal-manpower"; badge.textContent=avail+"/"+totalUsers(); cell.appendChild(badge); }
-        const shown=reqs.slice(0,3); const extra=reqs.length-shown.length;
+        const shown = isExpanded ? reqs : reqs.slice(0, 3);
+        const extra = isExpanded ? 0 : reqs.length - shown.length;
         shown.forEach(r=>{ const bar=document.createElement("div"); bar.className="cal-bar"+(r.status==="Pending"?" cal-bar-pending":""); bar.style.background=TEAM_COLORS[r.team]||"#999"; bar.textContent=r.user.split(" ")[0]; cell.appendChild(bar); });
         if(extra>0){ const more=document.createElement("div"); more.className="cal-bar-more"; more.textContent="+"+extra+" more"; cell.appendChild(more); }
         cell.addEventListener("mouseenter",(e)=>showCalTooltip(e,dateStr,reqs));
         cell.addEventListener("mouseleave",hideCalTooltip);
+        cell.addEventListener("click",(e)=>{ e.stopPropagation(); showCalTooltip(e,dateStr,reqs); });
         grid.appendChild(cell);
     }
     wrap.appendChild(grid);
@@ -1257,8 +1285,9 @@ function renderEmpWeekView(wrap) {
         dayHdr.innerHTML=`<span class="cal-week-dayname">${dayNames[i]}</span><span class="cal-week-datenum">${d.getDate()}</span>`;
         col.appendChild(dayHdr);
         const gcEvents = getGCalEventsOnDate(dateStr);
-        const shownGc = gcEvents.slice(0, 2);
-        const extraGc = gcEvents.length - shownGc.length;
+        const isExpanded = expandedDate === dateStr;
+        const shownGc = isExpanded ? gcEvents : gcEvents.slice(0, 2);
+        const extraGc = isExpanded ? 0 : gcEvents.length - shownGc.length;
         shownGc.forEach(ev => {
             const bar = document.createElement("div");
             bar.className = "cal-gcal-bar";
@@ -1281,6 +1310,7 @@ function renderEmpWeekView(wrap) {
         }
         col.addEventListener("mouseenter",(e)=>showCalTooltip(e,dateStr,reqs));
         col.addEventListener("mouseleave",hideCalTooltip);
+        col.addEventListener("click",(e)=>{ e.stopPropagation(); showCalTooltip(e,dateStr,reqs); });
         grid.appendChild(col);
     });
     wrap.appendChild(grid);
@@ -1337,6 +1367,14 @@ document.addEventListener("DOMContentLoaded", () => {
             e.target.setSelectionRange(pos, pos);
         });
     }
+
+
+    document.addEventListener("click", (e) => {
+        if (!e.target.closest(".cal-cell")) {
+            expandedDate = null;
+            renderCalendar();
+        }
+    });
 
     document.addEventListener("click", async (e) => {
         const btn = e.target.closest("#requests button[data-action][data-id]");

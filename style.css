@@ -1349,6 +1349,38 @@ button:hover {
     padding: 20px 0;
 }
 
+.cal-cell-expanded {
+    z-index: 5;
+    transform: scale(1.02);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    background: #fff;
+}
+
+.cal-grid {
+    align-items: start;
+}
+
+.cal-cell {
+    height: auto;  
+    min-height: 80px;  
+}
+
+.cal-cell-expanded {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+    .cal-grid {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cal-cell {
+        width: 100%;
+    }
+}
+
 /* ── GOOGLE CALENDAR BARS ────────────────────────────────── */
 .cal-gcal-bar {
     display: block;

@@ -1370,17 +1370,6 @@ button:hover {
     overflow-y: auto;
 }
 
-@media (max-width: 600px) {
-    .cal-grid {
-        display: flex;
-        flex-direction: column;
-    }
-
-    .cal-cell {
-        width: 100%;
-    }
-}
-
 /* ── GOOGLE CALENDAR BARS ────────────────────────────────── */
 .cal-gcal-bar {
     display: block;

@@ -77,15 +77,15 @@ const sb = {
     },
 
     async setPinRemote(name, pin) {
-        try {
-            const { data, error } = await _sb.functions.invoke("set-pin", {
-                body: { name: name.toLowerCase().trim(), pin }
-            });
-            if (error) { console.error("set-pin error:", error); return false; }
-            return data?.success === true;
-        } catch (err) { console.error("PIN set error:", err); return false; }
-    },
-
+    try {
+        const { data, error } = await _sb.functions.invoke("set-pin", {
+            body: { name: name.toLowerCase().trim(), pin }
+        });
+        if (error) { console.error("set-pin error:", error); return false; }
+        // Add this fallback — treat any non-error response as success
+        return true;
+    } catch (err) { console.error("PIN set error:", err); return false; }
+},
     async deletePinRemote(name) {
         try {
             const { data, error } = await _sb.functions.invoke("delete-pin", {

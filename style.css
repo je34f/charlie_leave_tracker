@@ -1505,6 +1505,10 @@ button:hover {
     background: #ea580c;
 }
 
+.cal-tooltip {
+    pointer-events: auto;
+}
+
 #floatingRefresh {
     display: none;
     position: fixed;
